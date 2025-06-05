@@ -6,7 +6,7 @@
 		"typeProperties": {
 			"server": "serverdbazure.database.windows.net",
 			"database": "dbAzure",
-			"encrypt": "mandatory",
+			"encrypt": "optional",
 			"trustServerCertificate": true,
 			"authenticationType": "SystemAssignedManagedIdentity",
 			"alwaysEncryptedSettings": {
@@ -14,7 +14,7 @@
 			}
 		},
 		"connectVia": {
-			"referenceName": "integrationRuntimeAzure",
+			"referenceName": "integrationRuntimeSelfHosted",
 			"type": "IntegrationRuntimeReference"
 		}
 	}
