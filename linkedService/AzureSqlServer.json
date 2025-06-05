@@ -5,7 +5,7 @@
 		"type": "AzureSqlDatabase",
 		"typeProperties": {
 			"server": "serverdbazure.database.windows.net",
-			"database": "master",
+			"database": "dbAzure",
 			"encrypt": "mandatory",
 			"trustServerCertificate": true,
 			"authenticationType": "SystemAssignedManagedIdentity",
@@ -14,7 +14,7 @@
 			}
 		},
 		"connectVia": {
-			"referenceName": "AutoResolveIntegrationRuntime",
+			"referenceName": "integrationRuntimeAzure",
 			"type": "IntegrationRuntimeReference"
 		}
 	}
