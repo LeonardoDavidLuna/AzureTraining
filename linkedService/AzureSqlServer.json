@@ -5,8 +5,8 @@
 		"type": "AzureSqlDatabase",
 		"typeProperties": {
 			"server": "serverdbazure.database.windows.net",
-			"database": "dbAzure",
-			"encrypt": "optional",
+			"database": "master",
+			"encrypt": "mandatory",
 			"trustServerCertificate": true,
 			"authenticationType": "SystemAssignedManagedIdentity",
 			"alwaysEncryptedSettings": {
@@ -14,7 +14,7 @@
 			}
 		},
 		"connectVia": {
-			"referenceName": "integrationRuntimeSelfHosted",
+			"referenceName": "AutoResolveIntegrationRuntime",
 			"type": "IntegrationRuntimeReference"
 		}
 	}
