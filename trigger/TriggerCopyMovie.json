@@ -3,7 +3,7 @@
 	"properties": {
 		"description": "Trigger to launch copy between movie csv files.",
 		"annotations": [],
-		"runtimeState": "Started",
+		"runtimeState": "Stopped",
 		"pipelines": [
 			{
 				"pipelineReference": {
