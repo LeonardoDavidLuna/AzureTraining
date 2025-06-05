@@ -1,0 +1,25 @@
+{
+	"name": "TriggerCopyMovie",
+	"properties": {
+		"description": "Trigger to launch copy between movie csv files.",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pipeline1",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 15,
+				"startTime": "2025-06-05T16:39:00",
+				"timeZone": "Central Standard Time (Mexico)"
+			}
+		}
+	}
+}
