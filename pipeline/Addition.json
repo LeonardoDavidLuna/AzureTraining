@@ -1,6 +1,22 @@
 {
 	"name": "Addition",
 	"properties": {
+		"activities": [
+			{
+				"name": "age",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "age",
+					"value": "40"
+				}
+			}
+		],
 		"variables": {
 			"age": {
 				"type": "String",
