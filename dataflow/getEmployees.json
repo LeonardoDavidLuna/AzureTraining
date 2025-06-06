@@ -12,7 +12,9 @@
 						"type": "DatasetReference"
 					}
 				}
-			]
+			],
+			"script": "section Section1;\r\nshared AzureSqlTab = let AdfDoc = Sql.Database(\"azureservertraining.database.windows.net\", \"trainingdb\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"Empleados\"]}[Data] in InputTable;\r\nshared UserQuery = let Source = #\"AzureSqlTab\" in Source;\r\n",
+			"documentLocale": "en-us"
 		}
 	}
 }
