@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Generate Orders",
+				"name": "Generate FactSales",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
@@ -17,6 +17,17 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
+						"additionalColumns": [
+							{
+								"name": "SaleID",
+								"value": "0"
+							},
+							{
+								"name": "TotalSale",
+								"value": "20000"
+							}
+						],
+						"sqlReaderQuery": "SELECT\n    C.CustomerID, C.FirstName, C.LastName, C.Email,\n    O.OrderDate, O.Quantity,\n\tP.ProductName, P.Category, P.UnitPrice\nFROM\n           [dbo].[Customers] as C\nINNER JOIN [dbo].[Orders]    as O ON C.CustomerID = O.CustomerID\nINNER JOIN [dbo].[Products]  as P ON P.ProductID = O.ProductID;",
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
@@ -31,10 +42,114 @@
 						"mappings": [
 							{
 								"source": {
-									"name": "EmpleadoID",
-									"type": "int",
-									"physicalType": "int",
+									"name": "SaleID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SaleID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "OrderDate",
+									"type": "DateTime",
+									"physicalType": "datetime"
+								},
+								"sink": {
+									"name": "OrderDate",
+									"type": "DateTime",
+									"physicalType": "date"
+								}
+							},
+							{
+								"source": {
+									"name": "FirstName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Email",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "CustomerEmail",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "ProductName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductName",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Category",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "ProductCategory",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "Quantity",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "Quantity",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "UnitPrice",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
 									"precision": 10
+								},
+								"sink": {
+									"name": "UnitPrice",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 10
+								}
+							},
+							{
+								"source": {
+									"name": "TotalSale",
+									"type": "String"
+								},
+								"sink": {
+									"name": "TotalSale",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 2,
+									"precision": 18
 								}
 							}
 						],
@@ -47,16 +162,70 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "AzureSqlTab",
+						"referenceName": "INAzureTableCustomers",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "AzureSqlTab",
+						"referenceName": "OUTAzureTableFactSales",
 						"type": "DatasetReference"
 					}
 				]
+			},
+			{
+				"name": "JoinCustomerOrdersProducts",
+				"type": "ExecuteWranglingDataflow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "joinCustomerOrdersProducts",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"queries": [
+						{
+							"queryName": "UserQuery",
+							"dataflowSinks": [
+								{
+									"name": "UserQueryINAzureTableCustomers",
+									"dataset": {
+										"referenceName": "INAzureTableCustomers",
+										"type": "DatasetReference"
+									},
+									"script": "sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tCustomerID as integer,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tEmail as string,\n\t\tRegistrationDate as date\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> UserQueryINAzureTableCustomers"
+								},
+								{
+									"name": "UserQueryINAzureTableOrders",
+									"dataset": {
+										"referenceName": "INAzureTableOrders",
+										"type": "DatasetReference"
+									},
+									"script": "sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tOrderID as integer,\n\t\tOrderDate as timestamp,\n\t\tCustomerID as integer,\n\t\tProductID as integer,\n\t\tQuantity as integer\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> UserQueryINAzureTableOrders"
+								},
+								{
+									"name": "UserQueryINAzureTableProducts",
+									"dataset": {
+										"referenceName": "INAzureTableProducts",
+										"type": "DatasetReference"
+									},
+									"script": "sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tProductID as integer,\n\t\tProductName as string,\n\t\tCategory as string,\n\t\tUnitPrice as decimal(10,2)\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> UserQueryINAzureTableProducts"
+								}
+							]
+						}
+					]
+				}
 			}
 		],
 		"annotations": []

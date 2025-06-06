@@ -1,5 +1,5 @@
 {
-	"name": "powerquery1",
+	"name": "joinCustomerOrdersProducts",
 	"properties": {
 		"type": "WranglingDataFlow",
 		"typeProperties": {
