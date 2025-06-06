@@ -11,31 +11,39 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage'"
 		},
-		"AzureSqlDatabase_password": {
+		"AzureSqlDBresources_password": {
 			"type": "secureString",
-			"metadata": "Secure string for 'password' of 'AzureSqlDatabase'"
+			"metadata": "Secure string for 'password' of 'AzureSqlDBresources'"
+		},
+		"AzureSqlDBresults_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'AzureSqlDBresults'"
 		},
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://AzureKeySecret.vault.azure.net/"
 		},
-		"AzureSqlServer_properties_typeProperties_server": {
-			"type": "string",
-			"defaultValue": "serverdbazure.database.windows.net"
-		},
-		"AzureSqlServer_properties_typeProperties_database": {
-			"type": "string",
-			"defaultValue": "azuredb"
-		},
-		"AzureSqlDatabase_properties_typeProperties_server": {
+		"AzureSqlDBresources_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "azureservertraining.database.windows.net"
 		},
-		"AzureSqlDatabase_properties_typeProperties_database": {
+		"AzureSqlDBresources_properties_typeProperties_database": {
 			"type": "string",
-			"defaultValue": "trainingdb"
+			"defaultValue": "DBresources"
 		},
-		"AzureSqlDatabase_properties_typeProperties_userName": {
+		"AzureSqlDBresources_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "leonardo"
+		},
+		"AzureSqlDBresults_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "azureservertraining.database.windows.net"
+		},
+		"AzureSqlDBresults_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "DBresults"
+		},
+		"AzureSqlDBresults_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "leonardo"
 		}
@@ -45,14 +53,13 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/CopyPipeline')]",
+			"name": "[concat(parameters('factoryName'), '/flowClientsProductsOrders')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "Copy Movie Resource",
-						"description": "Copy file among paths.",
+						"name": "Generate FactSales",
 						"type": "Copy",
 						"dependsOn": [],
 						"policy": {
@@ -65,33 +72,160 @@
 						"userProperties": [],
 						"typeProperties": {
 							"source": {
-								"type": "BinarySource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true
-								},
-								"formatSettings": {
-									"type": "BinaryReadSettings"
-								}
+								"type": "AzureSqlSource",
+								"additionalColumns": [
+									{
+										"name": "SaleID",
+										"value": "0"
+									},
+									{
+										"name": "TotalSale",
+										"value": "2000"
+									}
+								],
+								"sqlReaderQuery": "SELECT\n    C.CustomerID, C.FirstName, C.LastName, C.Email,\n    O.OrderDate, O.Quantity,\n\tP.ProductName, P.Category, P.UnitPrice\nFROM\n           [dbo].[Customers] as C\nINNER JOIN [dbo].[Orders]    as O ON C.CustomerID = O.CustomerID\nINNER JOIN [dbo].[Products]  as P ON P.ProductID = O.ProductID;",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
 							},
 							"sink": {
-								"type": "BinarySink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								}
+								"type": "AzureSqlSink",
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false
 							},
-							"enableStaging": false
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "SaleID",
+											"type": "String"
+										},
+										"sink": {
+											"name": "SaleID",
+											"type": "Int32",
+											"physicalType": "int"
+										}
+									},
+									{
+										"source": {
+											"name": "OrderDate",
+											"type": "DateTime",
+											"physicalType": "datetime"
+										},
+										"sink": {
+											"name": "OrderDate",
+											"type": "DateTime",
+											"physicalType": "date"
+										}
+									},
+									{
+										"source": {
+											"name": "FirstName",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "CustomerName",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Email",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "CustomerEmail",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "ProductName",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "ProductName",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Category",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "ProductCategory",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "Quantity",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "Quantity",
+											"type": "Int32",
+											"physicalType": "int"
+										}
+									},
+									{
+										"source": {
+											"name": "UnitPrice",
+											"type": "Decimal",
+											"physicalType": "decimal",
+											"scale": 2,
+											"precision": 10
+										},
+										"sink": {
+											"name": "UnitPrice",
+											"type": "Decimal",
+											"physicalType": "decimal",
+											"scale": 2,
+											"precision": 10
+										}
+									},
+									{
+										"source": {
+											"name": "TotalSale",
+											"type": "String"
+										},
+										"sink": {
+											"name": "TotalSale",
+											"type": "Decimal",
+											"physicalType": "decimal",
+											"scale": 2,
+											"precision": 18
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
 						},
 						"inputs": [
 							{
-								"referenceName": "moviesDB2",
+								"referenceName": "INAzureTableCustomers",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
 						],
 						"outputs": [
 							{
-								"referenceName": "moviesDB2",
+								"referenceName": "OUTAzureTableFactSales",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -104,31 +238,204 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/moviesDB2')]"
+				"[concat(variables('factoryId'), '/datasets/INAzureTableCustomers')]",
+				"[concat(variables('factoryId'), '/datasets/OUTAzureTableFactSales')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/moviesDB2')]",
+			"name": "[concat(parameters('factoryName'), '/INAzureTableCustomers')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "AzureBlobStorage",
+					"referenceName": "AzureSqlDBresources",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "moviesDB2.csv",
-						"folderPath": "input",
-						"container": "datafactory"
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "CustomerID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "FirstName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LastName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Email",
+						"type": "nvarchar"
+					},
+					{
+						"name": "RegistrationDate",
+						"type": "date"
 					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Customers"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage')]"
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDBresources')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/INAzureTableOrders')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDBresources",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "OrderID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "OrderDate",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "CustomerID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Quantity",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Orders"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDBresources')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/INAzureTableProducts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDBresources",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "ProductID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Category",
+						"type": "nvarchar"
+					},
+					{
+						"name": "UnitPrice",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 2
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Products"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDBresources')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OUTAzureTableFactSales')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDBresults",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SaleID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "OrderDate",
+						"type": "date"
+					},
+					{
+						"name": "CustomerName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CustomerEmail",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ProductName",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ProductCategory",
+						"type": "nvarchar"
+					},
+					{
+						"name": "Quantity",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "UnitPrice",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 2
+					},
+					{
+						"name": "TotalSale",
+						"type": "decimal",
+						"precision": 18,
+						"scale": 2
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "FactSales"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDBresults')]"
 			]
 		},
 		{
@@ -164,18 +471,23 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlServer')]",
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDBresources')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
 				"type": "AzureSqlDatabase",
 				"typeProperties": {
-					"server": "[parameters('AzureSqlServer_properties_typeProperties_server')]",
-					"database": "[parameters('AzureSqlServer_properties_typeProperties_database')]",
+					"server": "[parameters('AzureSqlDBresources_properties_typeProperties_server')]",
+					"database": "[parameters('AzureSqlDBresources_properties_typeProperties_database')]",
 					"encrypt": "mandatory",
 					"trustServerCertificate": true,
-					"authenticationType": "SystemAssignedManagedIdentity",
+					"authenticationType": "SQL",
+					"userName": "[parameters('AzureSqlDBresources_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('AzureSqlDBresources_password')]"
+					},
 					"alwaysEncryptedSettings": {
 						"alwaysEncryptedAkvAuthType": "ManagedIdentity"
 					}
@@ -190,34 +502,34 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/TriggerCopyMovie')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDBresults')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "Trigger to launch copy between movie csv files.",
 				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "CopyPipeline",
-							"type": "PipelineReference"
-						},
-						"parameters": {}
-					}
-				],
-				"type": "ScheduleTrigger",
+				"type": "AzureSqlDatabase",
 				"typeProperties": {
-					"recurrence": {
-						"frequency": "Minute",
-						"interval": 15,
-						"startTime": "2025-06-05T16:39:00",
-						"timeZone": "Central Standard Time (Mexico)"
+					"server": "[parameters('AzureSqlDBresults_properties_typeProperties_server')]",
+					"database": "[parameters('AzureSqlDBresults_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('AzureSqlDBresults_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('AzureSqlDBresults_password')]"
+					},
+					"alwaysEncryptedSettings": {
+						"alwaysEncryptedAkvAuthType": "ManagedIdentity"
 					}
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/CopyPipeline')]"
+				"[concat(variables('factoryId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
 			]
 		},
 		{
@@ -279,112 +591,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/default')]",
-			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
-			"apiVersion": "2018-06-01",
-			"properties": {},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Validation')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "User validation",
-						"type": "IfCondition",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"expression": {
-								"value": "@variables('name')",
-								"type": "Expression"
-							},
-							"ifFalseActivities": [
-								{
-									"name": "Opcion 2",
-									"type": "SetVariable",
-									"dependsOn": [],
-									"policy": {
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"variableName": "pipelineReturnValue",
-										"value": [
-											{
-												"key": "opcion2",
-												"value": {
-													"type": "String",
-													"content": "No eres Leonardo"
-												}
-											}
-										],
-										"setSystemVariable": true
-									}
-								}
-							],
-							"ifTrueActivities": [
-								{
-									"name": "Opcion 1",
-									"type": "SetVariable",
-									"dependsOn": [],
-									"policy": {
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"variableName": "pipelineReturnValue",
-										"value": [
-											{
-												"key": "opcion1",
-												"value": {
-													"type": "String",
-													"content": "Eres Leonardo"
-												}
-											}
-										],
-										"setSystemVariable": true
-									}
-								}
-							]
-						}
-					},
-					{
-						"name": "name",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"policy": {
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "name",
-							"value": {
-								"value": "{\"name\":\"Leonardo\"}",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"variables": {
-					"name": {
-						"type": "String"
-					}
-				},
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/getEmployees')]",
+			"name": "[concat(parameters('factoryName'), '/joinCustomerOrdersProducts')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -392,196 +599,46 @@
 				"typeProperties": {
 					"sources": [
 						{
-							"name": "AzureSqlTab",
-							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~>  AzureSqlTab",
+							"name": "INAzureTableCustomers",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> INAzureTableCustomers",
 							"dataset": {
-								"referenceName": "AzureSqlTab",
+								"referenceName": "INAzureTableCustomers",
+								"type": "DatasetReference"
+							}
+						},
+						{
+							"name": "INAzureTableOrders",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> INAzureTableOrders",
+							"dataset": {
+								"referenceName": "INAzureTableOrders",
+								"type": "DatasetReference"
+							}
+						},
+						{
+							"name": "INAzureTableProducts",
+							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> INAzureTableProducts",
+							"dataset": {
+								"referenceName": "INAzureTableProducts",
 								"type": "DatasetReference"
 							}
 						}
 					],
-					"script": "section Section1;\r\nshared AzureSqlTab = let AdfDoc = Sql.Database(\"azureservertraining.database.windows.net\", \"trainingdb\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"Empleados\"]}[Data] in InputTable;\r\nshared UserQuery = let Source = #\"AzureSqlTab\" in Source;\r\n",
+					"script": "section Section1;\r\nshared INAzureTableCustomers = let AdfDoc = Sql.Database(\"azureservertraining.database.windows.net\", \"DBresources\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"Customers\"]}[Data] in InputTable;\r\nshared INAzureTableOrders = let AdfDoc = Sql.Database(\"azureservertraining.database.windows.net\", \"DBresources\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"Orders\"]}[Data] in InputTable;\r\nshared INAzureTableProducts = let AdfDoc = Sql.Database(\"azureservertraining.database.windows.net\", \"DBresources\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"Products\"]}[Data] in InputTable;\r\nshared UserQuery = let Source = #\"INAzureTableCustomers\" in Source;\r\n",
 					"documentLocale": "en-us"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/AzureSqlTab')]"
+				"[concat(variables('factoryId'), '/datasets/INAzureTableCustomers')]",
+				"[concat(variables('factoryId'), '/datasets/INAzureTableOrders')]",
+				"[concat(variables('factoryId'), '/datasets/INAzureTableProducts')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"name": "[concat(parameters('factoryName'), '/default')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
 			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDatabase",
-				"typeProperties": {
-					"server": "[parameters('AzureSqlDatabase_properties_typeProperties_server')]",
-					"database": "[parameters('AzureSqlDatabase_properties_typeProperties_database')]",
-					"encrypt": "mandatory",
-					"trustServerCertificate": true,
-					"authenticationType": "SQL",
-					"userName": "[parameters('AzureSqlDatabase_properties_typeProperties_userName')]",
-					"password": {
-						"type": "SecureString",
-						"value": "[parameters('AzureSqlDatabase_password')]"
-					},
-					"alwaysEncryptedSettings": {
-						"alwaysEncryptedAkvAuthType": "ManagedIdentity"
-					}
-				},
-				"connectVia": {
-					"referenceName": "AutoResolveIntegrationRuntime",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlTab')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSqlDatabase",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "EmpleadoID",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "Nombre",
-						"type": "varchar"
-					},
-					{
-						"name": "Apellido",
-						"type": "varchar"
-					},
-					{
-						"name": "Salario",
-						"type": "decimal",
-						"precision": 10,
-						"scale": 2
-					},
-					{
-						"name": "FechaContratacion",
-						"type": "date"
-					},
-					{
-						"name": "DepartamentoID",
-						"type": "int",
-						"precision": 10
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "Empleados"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Validation')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "Validation",
-							"type": "PipelineReference"
-						},
-						"parameters": {}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Minute",
-						"interval": 1,
-						"startTime": "2025-06-06T00:35:00",
-						"timeZone": "Central Standard Time (Mexico)"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/Validation')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Addition')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "age",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"policy": {
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "age",
-							"value": "40"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"variables": {
-					"age": {
-						"type": "String",
-						"defaultValue": "30"
-					}
-				},
-				"annotations": []
-			},
+			"properties": {},
 			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/launch')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "Addition",
-							"type": "PipelineReference"
-						},
-						"parameters": {}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Minute",
-						"interval": 1,
-						"startTime": "2025-06-06T00:39:00",
-						"timeZone": "Central Standard Time (Mexico)"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/Addition')]"
-			]
 		}
 	]
 }

@@ -8,25 +8,31 @@
 		"AzureBlobStorage_connectionString": {
 			"value": ""
 		},
-		"AzureSqlDatabase_password": {
+		"AzureSqlDBresources_password": {
+			"value": ""
+		},
+		"AzureSqlDBresults_password": {
 			"value": ""
 		},
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"value": "https://AzureKeySecret.vault.azure.net/"
 		},
-		"AzureSqlServer_properties_typeProperties_server": {
-			"value": "serverdbazure.database.windows.net"
-		},
-		"AzureSqlServer_properties_typeProperties_database": {
-			"value": "azuredb"
-		},
-		"AzureSqlDatabase_properties_typeProperties_server": {
+		"AzureSqlDBresources_properties_typeProperties_server": {
 			"value": "azureservertraining.database.windows.net"
 		},
-		"AzureSqlDatabase_properties_typeProperties_database": {
-			"value": "trainingdb"
+		"AzureSqlDBresources_properties_typeProperties_database": {
+			"value": "DBresources"
 		},
-		"AzureSqlDatabase_properties_typeProperties_userName": {
+		"AzureSqlDBresources_properties_typeProperties_userName": {
+			"value": "leonardo"
+		},
+		"AzureSqlDBresults_properties_typeProperties_server": {
+			"value": "azureservertraining.database.windows.net"
+		},
+		"AzureSqlDBresults_properties_typeProperties_database": {
+			"value": "DBresults"
+		},
+		"AzureSqlDBresults_properties_typeProperties_userName": {
 			"value": "leonardo"
 		}
 	}
