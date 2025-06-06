@@ -38,17 +38,6 @@
 						"mappings": [
 							{
 								"source": {
-									"name": "SaleID",
-									"type": "String"
-								},
-								"sink": {
-									"name": "SaleID",
-									"type": "Int32",
-									"physicalType": "int"
-								}
-							},
-							{
-								"source": {
 									"name": "OrderDate",
 									"type": "DateTime",
 									"physicalType": "datetime"
