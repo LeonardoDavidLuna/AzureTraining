@@ -1,5 +1,5 @@
 {
-	"name": "AzureTableFactSales",
+	"name": "OUTAzureTableFactSales",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureSqlDBresults",
