@@ -1,0 +1,18 @@
+{
+	"name": "getEmployees",
+	"properties": {
+		"type": "WranglingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "AzureSqlTab",
+					"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~>  AzureSqlTab",
+					"dataset": {
+						"referenceName": "AzureSqlTab",
+						"type": "DatasetReference"
+					}
+				}
+			]
+		}
+	}
+}
