@@ -3,70 +3,9 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "JoinCustomerOrdersProducts",
-				"type": "ExecuteWranglingDataflow",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"dataflow": {
-						"referenceName": "joinCustomerOrdersProducts",
-						"type": "DataFlowReference"
-					},
-					"compute": {
-						"coreCount": 8,
-						"computeType": "General"
-					},
-					"queries": [
-						{
-							"queryName": "UserQuery",
-							"dataflowSinks": [
-								{
-									"name": "UserQueryINAzureTableCustomers",
-									"dataset": {
-										"referenceName": "INAzureTableCustomers",
-										"type": "DatasetReference"
-									},
-									"script": "sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tCustomerID as integer,\n\t\tFirstName as string,\n\t\tLastName as string,\n\t\tEmail as string,\n\t\tRegistrationDate as date\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> UserQueryINAzureTableCustomers"
-								},
-								{
-									"name": "UserQueryINAzureTableOrders",
-									"dataset": {
-										"referenceName": "INAzureTableOrders",
-										"type": "DatasetReference"
-									},
-									"script": "sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tOrderID as integer,\n\t\tOrderDate as timestamp,\n\t\tCustomerID as integer,\n\t\tProductID as integer,\n\t\tQuantity as integer\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> UserQueryINAzureTableOrders"
-								},
-								{
-									"name": "UserQueryINAzureTableProducts",
-									"dataset": {
-										"referenceName": "INAzureTableProducts",
-										"type": "DatasetReference"
-									},
-									"script": "sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinput(\n\t\tProductID as integer,\n\t\tProductName as string,\n\t\tCategory as string,\n\t\tUnitPrice as decimal(10,2)\n\t),\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError') ~> UserQueryINAzureTableProducts"
-								}
-							]
-						}
-					]
-				}
-			},
-			{
 				"name": "Generate FactSales",
 				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "JoinCustomerOrdersProducts",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
