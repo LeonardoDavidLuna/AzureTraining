@@ -19,10 +19,6 @@
 						"type": "AzureSqlSource",
 						"additionalColumns": [
 							{
-								"name": "SaleID",
-								"value": "0"
-							},
-							{
 								"name": "TotalSale",
 								"value": "2000"
 							}
