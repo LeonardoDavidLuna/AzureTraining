@@ -36,6 +36,10 @@
 				}
 			],
 			"scriptLines": [
+				"parameters{",
+				"     CustomerName as string (concat(FirstName,' ', LastName)),",
+				"     TotalSale as decimal(10,0) (multiply(Quantity,UnitPrice))",
+				"}",
 				"source(output(",
 				"          CustomerID as integer,",
 				"          FirstName as string,",
