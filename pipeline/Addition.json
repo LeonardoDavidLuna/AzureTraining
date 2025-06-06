@@ -1,0 +1,12 @@
+{
+	"name": "Addition",
+	"properties": {
+		"variables": {
+			"age": {
+				"type": "String",
+				"defaultValue": "30"
+			}
+		},
+		"annotations": []
+	}
+}
