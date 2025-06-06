@@ -1,5 +1,5 @@
 {
-	"name": "dataflow1",
+	"name": "dataflowJoin",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -32,7 +32,7 @@
 					"name": "joinCustomerOrders"
 				},
 				{
-					"name": "joinProductsOrders"
+					"name": "join1"
 				}
 			],
 			"scriptLines": [
@@ -73,11 +73,11 @@
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> joinCustomerOrders",
-				"Products, Orders join(Products@ProductID == Orders@ProductID,",
+				"Orders, Products join(Orders@ProductID == Products@ProductID,",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> joinProductsOrders"
+				"     broadcast: 'auto')~> join1"
 			]
 		}
 	}
