@@ -75,10 +75,6 @@
 								"type": "AzureSqlSource",
 								"additionalColumns": [
 									{
-										"name": "SaleID",
-										"value": "0"
-									},
-									{
 										"name": "TotalSale",
 										"value": "2000"
 									}
@@ -96,17 +92,6 @@
 							"translator": {
 								"type": "TabularTranslator",
 								"mappings": [
-									{
-										"source": {
-											"name": "SaleID",
-											"type": "String"
-										},
-										"sink": {
-											"name": "SaleID",
-											"type": "Int32",
-											"physicalType": "int"
-										}
-									},
 									{
 										"source": {
 											"name": "OrderDate",
