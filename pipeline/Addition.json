@@ -17,10 +17,15 @@
 				}
 			}
 		],
+		"parameters": {
+			"age": {
+				"type": "int",
+				"defaultValue": 15
+			}
+		},
 		"variables": {
 			"age": {
-				"type": "String",
-				"defaultValue": "30"
+				"type": "String"
 			}
 		},
 		"annotations": []
