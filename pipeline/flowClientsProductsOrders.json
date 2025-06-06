@@ -21,6 +21,10 @@
 							{
 								"name": "TotalSale",
 								"value": "2000"
+							},
+							{
+								"name": "SaleID",
+								"value": "0"
 							}
 						],
 						"sqlReaderQuery": "SELECT\n    C.CustomerID, C.FirstName, C.LastName, C.Email,\n    O.OrderDate, O.Quantity,\n\tP.ProductName, P.Category, P.UnitPrice\nFROM\n           [dbo].[Customers] as C\nINNER JOIN [dbo].[Orders]    as O ON C.CustomerID = O.CustomerID\nINNER JOIN [dbo].[Products]  as P ON P.ProductID = O.ProductID;",
@@ -36,6 +40,17 @@
 					"translator": {
 						"type": "TabularTranslator",
 						"mappings": [
+							{
+								"source": {
+									"name": "SaleID",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SaleID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
 							{
 								"source": {
 									"name": "OrderDate",
