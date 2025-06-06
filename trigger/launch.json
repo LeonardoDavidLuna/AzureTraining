@@ -1,0 +1,24 @@
+{
+	"name": "launch",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Addition",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 1,
+				"startTime": "2025-06-06T00:39:00",
+				"timeZone": "Central Standard Time (Mexico)"
+			}
+		}
+	}
+}
