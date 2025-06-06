@@ -11,6 +11,34 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage'"
 		},
+		"AzureSqlDatabase_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'AzureSqlDatabase'"
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://AzureKeySecret.vault.azure.net/"
+		},
+		"AzureSqlServer_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "serverdbazure.database.windows.net"
+		},
+		"AzureSqlServer_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "azuredb"
+		},
+		"AzureSqlDatabase_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "azureservertraining.database.windows.net"
+		},
+		"AzureSqlDatabase_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "trainingdb"
+		},
+		"AzureSqlDatabase_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "leonardo"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -40,6 +68,27 @@
 					},
 					"AzureBlobStorage_connectionString": {
 						"value": "[parameters('AzureBlobStorage_connectionString')]"
+					},
+					"AzureSqlDatabase_password": {
+						"value": "[parameters('AzureSqlDatabase_password')]"
+					},
+					"AzureKeyVault1_properties_typeProperties_baseUrl": {
+						"value": "[parameters('AzureKeyVault1_properties_typeProperties_baseUrl')]"
+					},
+					"AzureSqlServer_properties_typeProperties_server": {
+						"value": "[parameters('AzureSqlServer_properties_typeProperties_server')]"
+					},
+					"AzureSqlServer_properties_typeProperties_database": {
+						"value": "[parameters('AzureSqlServer_properties_typeProperties_database')]"
+					},
+					"AzureSqlDatabase_properties_typeProperties_server": {
+						"value": "[parameters('AzureSqlDatabase_properties_typeProperties_server')]"
+					},
+					"AzureSqlDatabase_properties_typeProperties_database": {
+						"value": "[parameters('AzureSqlDatabase_properties_typeProperties_database')]"
+					},
+					"AzureSqlDatabase_properties_typeProperties_userName": {
+						"value": "[parameters('AzureSqlDatabase_properties_typeProperties_userName')]"
 					}
 				}
 			},
