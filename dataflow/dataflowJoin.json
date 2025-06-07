@@ -35,7 +35,7 @@
 					"name": "joinCustomerOrdersProducts"
 				},
 				{
-					"name": "select1",
+					"name": "joinResults",
 					"description": "Renaming joinCustomerOrdersProducts to select1 with columns 'OrderDate, CustomerName, CustomerEmail, CustomerID, LastName, ProductName, ProductCategory, Quantity, UnitPrice'"
 				}
 			],
@@ -87,7 +87,7 @@
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> joinCustomerOrdersProducts",
 				"joinCustomerOrdersProducts select(skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select1"
+				"     skipDuplicateMapOutputs: true) ~> joinResults"
 			]
 		}
 	}
