@@ -95,8 +95,8 @@
 				"     broadcast: 'auto')~> joinCustomerOrdersProducts",
 				"joinCustomerOrdersProducts select(skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> joinResults",
-				"joinResults derive(CustomerName = concat(FirstName,' ',LastName),",
-				"          TotalSale = multiply(UnitPrice,Quantity)) ~> derivedColumn1",
+				"joinResults derive(ConcatName = concat(FirstName,' ',LastName),",
+				"          {} = multiply(UnitPrice,Quantity)) ~> derivedColumn1",
 				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -120,13 +120,13 @@
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          OrderDate,",
-				"          CustomerName,",
+				"          CustomerName = ConcatName,",
 				"          CustomerEmail = Email,",
 				"          ProductName,",
 				"          ProductCategory = Category,",
 				"          Quantity,",
 				"          UnitPrice,",
-				"          TotalSale",
+				"          TotalSale = {}",
 				"     )) ~> InsertSalesFact"
 			]
 		}
