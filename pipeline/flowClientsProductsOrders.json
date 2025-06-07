@@ -7,7 +7,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Data flow1",
+						"activity": "JoinCustomerProductsOrders",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -176,7 +176,7 @@
 				]
 			},
 			{
-				"name": "Data flow1",
+				"name": "JoinCustomerProductsOrders",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -190,11 +190,7 @@
 				"typeProperties": {
 					"dataflow": {
 						"referenceName": "dataflowJoin",
-						"type": "DataFlowReference",
-						"parameters": {
-							"CustomerName": "concat(FirstName,' ', LastName)",
-							"TotalSale": "multiply(Quantity,UnitPrice)"
-						}
+						"type": "DataFlowReference"
 					},
 					"compute": {
 						"coreCount": 16,
