@@ -5,7 +5,14 @@
 			{
 				"name": "Generate FactSales",
 				"type": "Copy",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Data flow1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -20,7 +27,17 @@
 						"additionalColumns": [
 							{
 								"name": "TotalSale",
-								"value": ""
+								"value": {
+									"value": "multiply(Quantity,UnitPrice)",
+									"type": "Expression"
+								}
+							},
+							{
+								"name": "CustomerName",
+								"value": {
+									"value": "concat(FirstName,' ', LastName)",
+									"type": "Expression"
+								}
 							}
 						],
 						"sqlReaderQuery": "SELECT\n    C.CustomerID, C.FirstName, C.LastName, C.Email,\n    O.OrderDate, O.Quantity,\n\tP.ProductName, P.Category, P.UnitPrice\nFROM\n           [dbo].[Customers] as C\nINNER JOIN [dbo].[Orders]    as O ON C.CustomerID = O.CustomerID\nINNER JOIN [dbo].[Products]  as P ON P.ProductID = O.ProductID;",
@@ -51,9 +68,8 @@
 							},
 							{
 								"source": {
-									"name": "FirstName",
-									"type": "String",
-									"physicalType": "nvarchar"
+									"name": "CustomerName",
+									"type": "String"
 								},
 								"sink": {
 									"name": "CustomerName",
@@ -174,7 +190,11 @@
 				"typeProperties": {
 					"dataflow": {
 						"referenceName": "dataflowJoin",
-						"type": "DataFlowReference"
+						"type": "DataFlowReference",
+						"parameters": {
+							"CustomerName": "concat(FirstName,' ', LastName)",
+							"TotalSale": "multiply(Quantity,UnitPrice)"
+						}
 					},
 					"compute": {
 						"coreCount": 16,
