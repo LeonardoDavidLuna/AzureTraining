@@ -1,0 +1,125 @@
+{
+	"name": "getReportSources",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "INAzureTableCustomers",
+						"type": "DatasetReference"
+					},
+					"name": "getCustomers"
+				},
+				{
+					"dataset": {
+						"referenceName": "INAzureTableProducts",
+						"type": "DatasetReference"
+					},
+					"name": "getProducts"
+				},
+				{
+					"dataset": {
+						"referenceName": "INAzureTableOrders",
+						"type": "DatasetReference"
+					},
+					"name": "getOrders"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "OUTAzureTableFactSales",
+						"type": "DatasetReference"
+					},
+					"name": "InsertSalesFact"
+				}
+			],
+			"transformations": [
+				{
+					"name": "joinCustomerOrders"
+				},
+				{
+					"name": "joinCustomerOrdersProducts"
+				},
+				{
+					"name": "joinResults",
+					"description": "Renaming joinCustomerOrdersProducts to select1 with columns 'OrderDate, CustomerName, CustomerEmail, CustomerID, LastName, ProductName, ProductCategory, Quantity, UnitPrice'"
+				},
+				{
+					"name": "NewColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as integer,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          Email as string,",
+				"          RegistrationDate as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT  CustomerID, FirstName, LastName, Email FROM dbo.Customers',",
+				"     format: 'query') ~> getCustomers",
+				"source(output(",
+				"          ProductID as integer,",
+				"          ProductName as string,",
+				"          Category as string,",
+				"          UnitPrice as decimal(10,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> getProducts",
+				"source(output(",
+				"          OrderID as integer,",
+				"          OrderDate as timestamp,",
+				"          CustomerID as integer,",
+				"          ProductID as integer,",
+				"          Quantity as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> getOrders",
+				"getCustomers, getOrders join(getCustomers@CustomerID == getOrders@CustomerID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinCustomerOrders",
+				"joinCustomerOrders, getProducts join(getOrders@ProductID == getProducts@ProductID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinCustomerOrdersProducts",
+				"joinCustomerOrdersProducts select(skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> joinResults",
+				"joinResults derive(FullName = concat(FirstName,' ',LastName),",
+				"          TotalAmount = multiply(UnitPrice,Quantity)) ~> NewColumns",
+				"NewColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SaleID as integer,",
+				"          OrderDate as date,",
+				"          CustomerName as string,",
+				"          CustomerEmail as string,",
+				"          ProductName as string,",
+				"          ProductCategory as string,",
+				"          Quantity as integer,",
+				"          UnitPrice as decimal(10,2),",
+				"          TotalSale as decimal(18,2)",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> InsertSalesFact"
+			]
+		}
+	}
+}
