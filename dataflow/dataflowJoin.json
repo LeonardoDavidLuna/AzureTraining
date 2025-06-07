@@ -26,7 +26,15 @@
 					"name": "Products"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "OUTAzureTableFactSales",
+						"type": "DatasetReference"
+					},
+					"name": "InsertSalesFact"
+				}
+			],
 			"transformations": [
 				{
 					"name": "joinCustomerOrders"
@@ -37,6 +45,9 @@
 				{
 					"name": "joinResults",
 					"description": "Renaming joinCustomerOrdersProducts to select1 with columns 'OrderDate, CustomerName, CustomerEmail, CustomerID, LastName, ProductName, ProductCategory, Quantity, UnitPrice'"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
@@ -83,7 +94,40 @@
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> joinCustomerOrdersProducts",
 				"joinCustomerOrdersProducts select(skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> joinResults"
+				"     skipDuplicateMapOutputs: true) ~> joinResults",
+				"joinResults derive(CustomerName = concat(FirstName,' ',LastName),",
+				"          TotalSale = multiply(UnitPrice,Quantity)) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SaleID as integer,",
+				"          OrderDate as date,",
+				"          CustomerName as string,",
+				"          CustomerEmail as string,",
+				"          ProductName as string,",
+				"          ProductCategory as string,",
+				"          Quantity as integer,",
+				"          UnitPrice as decimal(10,2),",
+				"          TotalSale as decimal(18,2)",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          OrderDate,",
+				"          CustomerName,",
+				"          CustomerEmail = Email,",
+				"          ProductName,",
+				"          ProductCategory = Category,",
+				"          Quantity,",
+				"          UnitPrice,",
+				"          TotalSale",
+				"     )) ~> InsertSalesFact"
 			]
 		}
 	}
