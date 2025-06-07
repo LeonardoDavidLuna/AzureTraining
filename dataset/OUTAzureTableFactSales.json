@@ -2,7 +2,7 @@
 	"name": "OUTAzureTableFactSales",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "AzureSqlDBresults",
+			"referenceName": "AzureSqlOUTdb",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
