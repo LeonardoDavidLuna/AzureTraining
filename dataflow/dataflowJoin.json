@@ -32,7 +32,11 @@
 					"name": "joinCustomerOrders"
 				},
 				{
-					"name": "join1"
+					"name": "joinCustomerOrdersProducts"
+				},
+				{
+					"name": "select1",
+					"description": "Renaming joinCustomerOrdersProducts to select1 with columns 'OrderDate, CustomerName, CustomerEmail, CustomerID, LastName, ProductName, ProductCategory, Quantity, UnitPrice'"
 				}
 			],
 			"scriptLines": [
@@ -73,15 +77,17 @@
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> Products",
 				"Customers, Orders join(Customers@CustomerID == Orders@CustomerID,",
-				"     joinType:'inner',",
+				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> joinCustomerOrders",
-				"Orders, Products join(Orders@ProductID == Products@ProductID,",
-				"     joinType:'inner',",
+				"joinCustomerOrders, Products join(Orders@ProductID == Products@ProductID,",
+				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> join1"
+				"     broadcast: 'auto')~> joinCustomerOrdersProducts",
+				"joinCustomerOrdersProducts select(skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1"
 			]
 		}
 	}
