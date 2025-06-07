@@ -19,6 +19,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'AzureSqlDBresults'"
 		},
+		"AzureSqlOUTdb_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'AzureSqlOUTdb'"
+		},
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://AzureKeySecret.vault.azure.net/"
@@ -44,6 +48,18 @@
 			"defaultValue": "DBresults"
 		},
 		"AzureSqlDBresults_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "leonardo"
+		},
+		"AzureSqlOUTdb_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "azureservertraining.database.windows.net"
+		},
+		"AzureSqlOUTdb_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "dbResults"
+		},
+		"AzureSqlOUTdb_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "leonardo"
 		}
@@ -212,6 +228,34 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlOUTdb')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('AzureSqlOUTdb_properties_typeProperties_server')]",
+					"database": "[parameters('AzureSqlOUTdb_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('AzureSqlOUTdb_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('AzureSqlOUTdb_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/INAzureTableCustomers')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -349,7 +393,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "AzureSqlDBresults",
+					"referenceName": "AzureSqlOUTdb",
 					"type": "LinkedServiceReference"
 				},
 				"annotations": [],
@@ -404,18 +448,294 @@
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDBresults')]"
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlOUTdb')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/flowClientsProductsOrders')]",
+			"name": "[concat(parameters('factoryName'), '/dataflowJoin')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "INAzureTableCustomers",
+								"type": "DatasetReference"
+							},
+							"name": "Customers"
+						},
+						{
+							"dataset": {
+								"referenceName": "INAzureTableOrders",
+								"type": "DatasetReference"
+							},
+							"name": "Orders"
+						},
+						{
+							"dataset": {
+								"referenceName": "INAzureTableProducts",
+								"type": "DatasetReference"
+							},
+							"name": "Products"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "OUTAzureTableFactSales",
+								"type": "DatasetReference"
+							},
+							"name": "InsertSalesFact"
+						}
+					],
+					"transformations": [
+						{
+							"name": "joinCustomerOrders"
+						},
+						{
+							"name": "joinCustomerOrdersProducts"
+						},
+						{
+							"name": "joinResults",
+							"description": "Renaming joinCustomerOrdersProducts to select1 with columns 'OrderDate, CustomerName, CustomerEmail, CustomerID, LastName, ProductName, ProductCategory, Quantity, UnitPrice'"
+						},
+						{
+							"name": "NewColumns"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerID as integer,",
+						"          FirstName as string,",
+						"          LastName as string,",
+						"          Email as string,",
+						"          RegistrationDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT  CustomerID, FirstName, LastName, Email FROM dbo.Customers',",
+						"     format: 'query') ~> Customers",
+						"source(output(",
+						"          OrderID as integer,",
+						"          OrderDate as timestamp,",
+						"          CustomerID as integer,",
+						"          ProductID as integer,",
+						"          Quantity as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> Orders",
+						"source(output(",
+						"          ProductID as integer,",
+						"          ProductName as string,",
+						"          Category as string,",
+						"          UnitPrice as decimal(10,2)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> Products",
+						"Customers, Orders join(Customers@CustomerID == Orders@CustomerID,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinCustomerOrders",
+						"joinCustomerOrders, Products join(Orders@ProductID == Products@ProductID,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinCustomerOrdersProducts",
+						"joinCustomerOrdersProducts select(skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> joinResults",
+						"joinResults derive(Concat = concat(FirstName,' ',LastName),",
+						"          Total = multiply(UnitPrice,Quantity)) ~> NewColumns",
+						"NewColumns sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SaleID as integer,",
+						"          OrderDate as date,",
+						"          CustomerName as string,",
+						"          CustomerEmail as string,",
+						"          ProductName as string,",
+						"          ProductCategory as string,",
+						"          Quantity as integer,",
+						"          UnitPrice as decimal(10,2),",
+						"          TotalSale as decimal(18,2)",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          OrderDate,",
+						"          CustomerName = Concat,",
+						"          CustomerEmail = Email,",
+						"          ProductName,",
+						"          ProductCategory = Category,",
+						"          Quantity,",
+						"          UnitPrice,",
+						"          TotalSale = Total",
+						"     )) ~> InsertSalesFact"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/INAzureTableCustomers')]",
+				"[concat(variables('factoryId'), '/datasets/INAzureTableOrders')]",
+				"[concat(variables('factoryId'), '/datasets/INAzureTableProducts')]",
+				"[concat(variables('factoryId'), '/datasets/OUTAzureTableFactSales')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/getReportSources')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "INAzureTableCustomers",
+								"type": "DatasetReference"
+							},
+							"name": "getCustomers"
+						},
+						{
+							"dataset": {
+								"referenceName": "INAzureTableProducts",
+								"type": "DatasetReference"
+							},
+							"name": "getProducts"
+						},
+						{
+							"dataset": {
+								"referenceName": "INAzureTableOrders",
+								"type": "DatasetReference"
+							},
+							"name": "getOrders"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "OUTAzureTableFactSales",
+								"type": "DatasetReference"
+							},
+							"name": "InsertSalesFact"
+						}
+					],
+					"transformations": [
+						{
+							"name": "joinCustomerOrders"
+						},
+						{
+							"name": "joinCustomerOrdersProducts"
+						},
+						{
+							"name": "joinResults",
+							"description": "Renaming joinCustomerOrdersProducts to select1 with columns 'OrderDate, CustomerName, CustomerEmail, CustomerID, LastName, ProductName, ProductCategory, Quantity, UnitPrice'"
+						},
+						{
+							"name": "NewColumns"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerID as integer,",
+						"          FirstName as string,",
+						"          LastName as string,",
+						"          Email as string,",
+						"          RegistrationDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT  CustomerID, FirstName, LastName, Email FROM dbo.Customers',",
+						"     format: 'query') ~> getCustomers",
+						"source(output(",
+						"          ProductID as integer,",
+						"          ProductName as string,",
+						"          Category as string,",
+						"          UnitPrice as decimal(10,2)",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> getProducts",
+						"source(output(",
+						"          OrderID as integer,",
+						"          OrderDate as timestamp,",
+						"          CustomerID as integer,",
+						"          ProductID as integer,",
+						"          Quantity as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> getOrders",
+						"getCustomers, getOrders join(getCustomers@CustomerID == getOrders@CustomerID,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinCustomerOrders",
+						"joinCustomerOrders, getProducts join(getOrders@ProductID == getProducts@ProductID,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinCustomerOrdersProducts",
+						"joinCustomerOrdersProducts select(skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> joinResults",
+						"joinResults derive(FullName = concat(FirstName,' ',LastName),",
+						"          TotalAmount = multiply(UnitPrice,Quantity)) ~> NewColumns",
+						"NewColumns sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SaleID as integer,",
+						"          OrderDate as date,",
+						"          CustomerName as string,",
+						"          CustomerEmail as string,",
+						"          ProductName as string,",
+						"          ProductCategory as string,",
+						"          Quantity as integer,",
+						"          UnitPrice as decimal(10,2),",
+						"          TotalSale as decimal(18,2)",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> InsertSalesFact"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/INAzureTableCustomers')]",
+				"[concat(variables('factoryId'), '/datasets/INAzureTableProducts')]",
+				"[concat(variables('factoryId'), '/datasets/INAzureTableOrders')]",
+				"[concat(variables('factoryId'), '/datasets/OUTAzureTableFactSales')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/flowGenerateSalesReport')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "Generate FactSales",
-						"type": "Copy",
+						"name": "Generate Reports",
+						"type": "ExecuteDataFlow",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
@@ -426,151 +746,24 @@
 						},
 						"userProperties": [],
 						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"additionalColumns": [
-									{
-										"name": "TotalSale",
-										"value": "2000"
-									}
-								],
-								"sqlReaderQuery": "SELECT\n    C.CustomerID, C.FirstName, C.LastName, C.Email,\n    O.OrderDate, O.Quantity,\n\tP.ProductName, P.Category, P.UnitPrice\nFROM\n           [dbo].[Customers] as C\nINNER JOIN [dbo].[Orders]    as O ON C.CustomerID = O.CustomerID\nINNER JOIN [dbo].[Products]  as P ON P.ProductID = O.ProductID;",
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"sink": {
-								"type": "AzureSqlSink",
-								"writeBehavior": "insert",
-								"sqlWriterUseTableLock": false,
-								"disableMetricsCollection": false
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"name": "OrderDate",
-											"type": "DateTime",
-											"physicalType": "datetime"
-										},
-										"sink": {
-											"name": "OrderDate",
-											"type": "DateTime",
-											"physicalType": "date"
-										}
-									},
-									{
-										"source": {
-											"name": "FirstName",
-											"type": "String",
-											"physicalType": "nvarchar"
-										},
-										"sink": {
-											"name": "CustomerName",
-											"type": "String",
-											"physicalType": "nvarchar"
-										}
-									},
-									{
-										"source": {
-											"name": "Email",
-											"type": "String",
-											"physicalType": "nvarchar"
-										},
-										"sink": {
-											"name": "CustomerEmail",
-											"type": "String",
-											"physicalType": "nvarchar"
-										}
-									},
-									{
-										"source": {
-											"name": "ProductName",
-											"type": "String",
-											"physicalType": "nvarchar"
-										},
-										"sink": {
-											"name": "ProductName",
-											"type": "String",
-											"physicalType": "nvarchar"
-										}
-									},
-									{
-										"source": {
-											"name": "Category",
-											"type": "String",
-											"physicalType": "nvarchar"
-										},
-										"sink": {
-											"name": "ProductCategory",
-											"type": "String",
-											"physicalType": "nvarchar"
-										}
-									},
-									{
-										"source": {
-											"name": "Quantity",
-											"type": "Int32",
-											"physicalType": "int"
-										},
-										"sink": {
-											"name": "Quantity",
-											"type": "Int32",
-											"physicalType": "int"
-										}
-									},
-									{
-										"source": {
-											"name": "UnitPrice",
-											"type": "Decimal",
-											"physicalType": "decimal",
-											"scale": 2,
-											"precision": 10
-										},
-										"sink": {
-											"name": "UnitPrice",
-											"type": "Decimal",
-											"physicalType": "decimal",
-											"scale": 2,
-											"precision": 10
-										}
-									},
-									{
-										"source": {
-											"name": "TotalSale",
-											"type": "String"
-										},
-										"sink": {
-											"name": "TotalSale",
-											"type": "Decimal",
-											"physicalType": "decimal",
-											"scale": 2,
-											"precision": 18
-										}
-									}
-								],
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
+							"dataflow": {
+								"referenceName": "getReportSources",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"getCustomers": {},
+									"getProducts": {},
+									"getOrders": {},
+									"InsertSalesFact": {}
 								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "INAzureTableCustomers",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "OUTAzureTableFactSales",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
 					}
 				],
 				"policy": {
@@ -579,51 +772,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/INAzureTableCustomers')]",
-				"[concat(variables('factoryId'), '/datasets/OUTAzureTableFactSales')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/joinCustomerOrdersProducts')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "WranglingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"name": "INAzureTableCustomers",
-							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> INAzureTableCustomers",
-							"dataset": {
-								"referenceName": "INAzureTableCustomers",
-								"type": "DatasetReference"
-							}
-						},
-						{
-							"name": "INAzureTableOrders",
-							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> INAzureTableOrders",
-							"dataset": {
-								"referenceName": "INAzureTableOrders",
-								"type": "DatasetReference"
-							}
-						},
-						{
-							"name": "INAzureTableProducts",
-							"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> INAzureTableProducts",
-							"dataset": {
-								"referenceName": "INAzureTableProducts",
-								"type": "DatasetReference"
-							}
-						}
-					],
-					"script": "section Section1;\r\nshared INAzureTableCustomers = let AdfDoc = Sql.Database(\"azureservertraining.database.windows.net\", \"DBresources\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"Customers\"]}[Data] in InputTable;\r\nshared INAzureTableOrders = let AdfDoc = Sql.Database(\"azureservertraining.database.windows.net\", \"DBresources\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"Orders\"]}[Data] in InputTable;\r\nshared INAzureTableProducts = let AdfDoc = Sql.Database(\"azureservertraining.database.windows.net\", \"DBresources\", [CreateNavigationProperties = false]), InputTable = AdfDoc{[Schema=\"dbo\",Item=\"Products\"]}[Data] in InputTable;\r\nshared UserQuery = let Source = #\"INAzureTableCustomers\" in Source;\r\n",
-					"documentLocale": "en-us"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/INAzureTableCustomers')]",
-				"[concat(variables('factoryId'), '/datasets/INAzureTableOrders')]",
-				"[concat(variables('factoryId'), '/datasets/INAzureTableProducts')]"
+				"[concat(variables('factoryId'), '/dataflows/getReportSources')]"
 			]
 		}
 	]
