@@ -118,7 +118,17 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> InsertSalesFact"
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          OrderDate,",
+				"          CustomerName = FullName,",
+				"          CustomerEmail = Email,",
+				"          ProductName,",
+				"          ProductCategory = Category,",
+				"          Quantity,",
+				"          UnitPrice,",
+				"          TotalSale = TotalAmount",
+				"     )) ~> InsertSalesFact"
 			]
 		}
 	}
