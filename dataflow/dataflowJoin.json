@@ -47,7 +47,7 @@
 					"description": "Renaming joinCustomerOrdersProducts to select1 with columns 'OrderDate, CustomerName, CustomerEmail, CustomerID, LastName, ProductName, ProductCategory, Quantity, UnitPrice'"
 				},
 				{
-					"name": "derivedColumn1"
+					"name": "NewColumns"
 				}
 			],
 			"scriptLines": [
@@ -61,7 +61,8 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> Customers",
+				"     query: 'SELECT  CustomerID, FirstName, LastName, Email FROM dbo.Customers',",
+				"     format: 'query') ~> Customers",
 				"source(output(",
 				"          OrderID as integer,",
 				"          OrderDate as timestamp,",
@@ -95,9 +96,9 @@
 				"     broadcast: 'auto')~> joinCustomerOrdersProducts",
 				"joinCustomerOrdersProducts select(skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> joinResults",
-				"joinResults derive(ConcatName = concat(FirstName,' ',LastName),",
-				"          {} = multiply(UnitPrice,Quantity)) ~> derivedColumn1",
-				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"joinResults derive(Concat = concat(FirstName,' ',LastName),",
+				"          Total = multiply(UnitPrice,Quantity)) ~> NewColumns",
+				"NewColumns sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          SaleID as integer,",
@@ -120,13 +121,13 @@
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          OrderDate,",
-				"          CustomerName = ConcatName,",
+				"          CustomerName = Concat,",
 				"          CustomerEmail = Email,",
 				"          ProductName,",
 				"          ProductCategory = Category,",
 				"          Quantity,",
 				"          UnitPrice,",
-				"          TotalSale = {}",
+				"          TotalSale = Total",
 				"     )) ~> InsertSalesFact"
 			]
 		}
