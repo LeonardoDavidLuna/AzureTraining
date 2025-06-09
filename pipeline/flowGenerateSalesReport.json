@@ -27,7 +27,7 @@
 				}
 			},
 			{
-				"name": "Generate Report CSV",
+				"name": "Create report",
 				"type": "Copy",
 				"dependsOn": [
 					{
@@ -55,7 +55,7 @@
 						"type": "DelimitedTextSink",
 						"storeSettings": {
 							"type": "AzureBlobStorageWriteSettings",
-							"copyBehavior": "PreserveHierarchy"
+							"copyBehavior": "FlattenHierarchy"
 						},
 						"formatSettings": {
 							"type": "DelimitedTextWriteSettings",
@@ -195,7 +195,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "outputResult",
+						"referenceName": "reportResult",
 						"type": "DatasetReference"
 					}
 				]
