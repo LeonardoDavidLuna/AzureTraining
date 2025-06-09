@@ -56,13 +56,15 @@
 						"storeSettings": {
 							"type": "AzureBlobStorageWriteSettings",
 							"maxConcurrentConnections": 2,
-							"copyBehavior": "PreserveHierarchy",
-							"blockSizeInMB": 5
+							"copyBehavior": "FlattenHierarchy",
+							"blockSizeInMB": 4
 						},
 						"formatSettings": {
 							"type": "DelimitedTextWriteSettings",
+							"maxRowsPerFile": 10,
+							"fileNamePrefix": "factSalesReport",
 							"quoteAllText": true,
-							"fileExtension": ".txt"
+							"fileExtension": ".csv"
 						}
 					},
 					"enableStaging": false,
@@ -197,7 +199,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "reportResult",
+						"referenceName": "outputResult",
 						"type": "DatasetReference"
 					}
 				]
