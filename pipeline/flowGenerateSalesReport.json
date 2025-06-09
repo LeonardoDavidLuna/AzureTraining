@@ -27,7 +27,7 @@
 				}
 			},
 			{
-				"name": "Copy data1",
+				"name": "Generate Report CSV",
 				"type": "Copy",
 				"dependsOn": [
 					{
