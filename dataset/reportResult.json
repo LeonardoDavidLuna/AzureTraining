@@ -11,7 +11,7 @@
 			"location": {
 				"type": "AzureBlobStorageLocation",
 				"fileName": "factSalesReport.csv",
-				"folderPath": "output",
+				"folderPath": "reports",
 				"container": "storagecontainer"
 			},
 			"columnDelimiter": ",",
