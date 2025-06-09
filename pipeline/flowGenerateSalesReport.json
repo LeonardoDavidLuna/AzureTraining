@@ -20,7 +20,7 @@
 						"type": "DataFlowReference"
 					},
 					"compute": {
-						"coreCount": 8,
+						"coreCount": 16,
 						"computeType": "General"
 					},
 					"traceLevel": "Fine"
@@ -40,7 +40,7 @@
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
-					"retryIntervalInSeconds": 10,
+					"retryIntervalInSeconds": 30,
 					"secureOutput": false,
 					"secureInput": false
 				},
@@ -54,12 +54,15 @@
 					"sink": {
 						"type": "DelimitedTextSink",
 						"storeSettings": {
-							"type": "AzureBlobStorageWriteSettings"
+							"type": "AzureBlobStorageWriteSettings",
+							"copyBehavior": "FlattenHierarchy"
 						},
 						"formatSettings": {
 							"type": "DelimitedTextWriteSettings",
+							"maxRowsPerFile": 5,
+							"fileNamePrefix": "R",
 							"quoteAllText": true,
-							"fileExtension": ".txt"
+							"fileExtension": ".csv"
 						}
 					},
 					"enableStaging": false,
@@ -194,7 +197,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "reportResult",
+						"referenceName": "csvFormat",
 						"type": "DatasetReference"
 					}
 				]
