@@ -61,8 +61,6 @@
 						},
 						"formatSettings": {
 							"type": "DelimitedTextWriteSettings",
-							"maxRowsPerFile": 10,
-							"fileNamePrefix": "factSalesReport",
 							"quoteAllText": true,
 							"fileExtension": ".csv"
 						}
