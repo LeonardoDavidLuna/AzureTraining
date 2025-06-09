@@ -11,6 +11,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage'"
 		},
+		"AzureDataLakeStorage_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorage'"
+		},
 		"AzureSqlDBresources_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'AzureSqlDBresources'"
@@ -22,6 +26,10 @@
 		"AzureSqlOUTdb_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'AzureSqlOUTdb'"
+		},
+		"AzureDataLakeStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://storageq4lwcvhihbvss.dfs.core.windows.net/"
 		},
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"type": "string",
@@ -93,6 +101,9 @@
 					"AzureBlobStorage_connectionString": {
 						"value": "[parameters('AzureBlobStorage_connectionString')]"
 					},
+					"AzureDataLakeStorage_accountKey": {
+						"value": "[parameters('AzureDataLakeStorage_accountKey')]"
+					},
 					"AzureSqlDBresources_password": {
 						"value": "[parameters('AzureSqlDBresources_password')]"
 					},
@@ -104,6 +115,9 @@
 					},
 					"AzureKeyVault1_properties_typeProperties_baseUrl": {
 						"value": "[parameters('AzureKeyVault1_properties_typeProperties_baseUrl')]"
+					},
+					"AzureDataLakeStorage_properties_typeProperties_url": {
+						"value": "[parameters('AzureDataLakeStorage_properties_typeProperties_url')]"
 					},
 					"AzureSqlDBresources_properties_typeProperties_server": {
 						"value": "[parameters('AzureSqlDBresources_properties_typeProperties_server')]"

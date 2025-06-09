@@ -8,6 +8,9 @@
 		"AzureBlobStorage_connectionString": {
 			"value": ""
 		},
+		"AzureDataLakeStorage_accountKey": {
+			"value": ""
+		},
 		"AzureSqlDBresources_password": {
 			"value": ""
 		},
@@ -16,6 +19,9 @@
 		},
 		"AzureSqlOUTdb_password": {
 			"value": ""
+		},
+		"AzureDataLakeStorage_properties_typeProperties_url": {
+			"value": "https://storageq4lwcvhihbvss.dfs.core.windows.net/"
 		},
 		"AzureKeyVault1_properties_typeProperties_baseUrl": {
 			"value": "https://AzureKeySecret.vault.azure.net/"
